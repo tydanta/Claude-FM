@@ -1,0 +1,14 @@
+{
+  "name": "claude-fm-android-node",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bundled Node service for Claude FM Android builds.",
+  "main": "main.js",
+  "dependencies": {
+    "claude-private-fm": "file:..",
+    "NeteaseCloudMusicApi": "4.32.0"
+  },
+  "overrides": {
+    "pac-proxy-agent": "5.0.0"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "claude-private-fm",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A local-first Claude FM PWA with pluggable music, voice, weather, and calendar adapters.",
+  "type": "module",
+  "scripts": {
+    "build:liquid-nav": "esbuild src/liquid-nav.jsx --bundle --format=esm --jsx=automatic --minify --define:process.env.NODE_ENV='\"production\"' --outfile=public/liquid-nav.js",
+    "start": "node server.js",
+    "dev": "node server.js",
+    "check": "node --check server.js && node --check src/server/app.js && node --check public/app.js && node --check public/modules/main.js && npm run build:liquid-nav",
+    "check:css": "node scripts/css-audit.js",
+    "smoke:http": "node scripts/http-smoke.js",
+    "android:patch-node-plugin": "node scripts/patch-nodejs-mobile-cordova.js",
+    "android:install-node-api": "npm install --omit=dev --ignore-scripts --prefix android-node",
+    "android:prepare-node-api": "node scripts/prepare-android-node-api.js",
+    "android:add": "cap add android",
+    "android:sync": "npm run android:patch-node-plugin && npm run android:install-node-api && npm run android:prepare-node-api && cap sync android && npm run android:patch-node-plugin && npm run android:prepare-node-api",
+    "android:open": "cap open android",
+    "android:build:debug": "npm run check && npm run android:patch-node-plugin && npm run android:install-node-api && npm run android:prepare-node-api && cap sync android && npm run android:patch-node-plugin && npm run android:prepare-node-api && cd android && gradle.bat assembleDebug"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
+    "better-sqlite3": "^12.10.0",
+    "esbuild": "^0.25.0",
+    "liquid-glass-react": "^1.1.1",
+    "NeteaseCloudMusicApi": "^4.32.0",
+    "nodejs-mobile-cordova": "^0.4.3",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  }
+}

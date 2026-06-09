@@ -1,0 +1,603 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#080808" />
+    <title>Claude FM</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icons/icon.svg" />
+    <link rel="stylesheet" href="/styles.css?v=20260608-android-api1" />
+  </head>
+  <body data-theme="dark" data-surface="liquid" data-glass="tint">
+    <svg class="liquid-filter-defs" aria-hidden="true" focusable="false">
+      <defs>
+        <filter id="liquidGlassCard" x="-18%" y="-18%" width="136%" height="136%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="13" result="noise" />
+          <feGaussianBlur in="noise" stdDeviation="1.2" result="softNoise" />
+          <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="18" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+        <filter id="liquidGlassControl" x="-12%" y="-12%" width="124%" height="124%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.018 0.026" numOctaves="2" seed="21" result="noise" />
+          <feGaussianBlur in="noise" stdDeviation="0.9" result="softNoise" />
+          <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="10" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </defs>
+    </svg>
+    <main class="fm-shell">
+      <section id="radioPage" class="app-page is-active" data-page="radio">
+        <section class="stage" aria-label="播放舞台">
+          <div class="stage-info">
+            <div class="stage-time">
+              <span id="stageClock">--:--</span>
+              <small id="stageWeekday">Monday</small>
+              <div class="stage-weather-mark" aria-label="天气">
+                <span id="weatherIcon" class="weather-icon" aria-hidden="true"></span>
+                <small id="stageWeatherTemp">--°</small>
+              </div>
+            </div>
+          </div>
+          <div id="equalizer" class="equalizer" aria-hidden="true"></div>
+        </section>
+
+        <section class="timeline-zone" aria-label="播放进度">
+          <div class="timeline-meta">
+            <span id="elapsed">0:00</span>
+            <span id="duration">0:00</span>
+          </div>
+          <div class="timeline-track">
+            <input id="progress" type="range" min="0" max="1000" value="0" aria-label="播放进度" />
+            <div id="progressFill" class="progress-fill"></div>
+            <div id="clawdWalker" class="clawd-walker is-idle" aria-hidden="true">
+              <div class="headphones"></div>
+                <div class="clawd-body">
+                  <i></i>
+                  <i></i>
+                  <b></b>
+                  <em></em>
+                </div>
+              </div>
+          </div>
+          <div id="lyricLine" class="lyric-line">歌词准备中...</div>
+        </section>
+
+        <section class="player-row" aria-label="播放器控制">
+          <article class="now-card">
+            <div id="trackCover" class="track-cover" aria-hidden="true"></div>
+            <div class="track-copy">
+              <strong id="trackTitle">加载中</strong>
+              <span id="trackArtist">正在连接 Claudio</span>
+            </div>
+          </article>
+
+          <div class="controls">
+            <button id="likeBtn" class="round-btn" type="button" aria-label="喜欢" title="喜欢">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 8.8c0 5.2-8.5 9.7-8.5 9.7S3.5 14 3.5 8.8A4.4 4.4 0 0 1 12 7a4.4 4.4 0 0 1 8.5 1.8z"></path></svg>
+            </button>
+            <button id="fmBtn" class="round-btn fm-btn" type="button" aria-label="DJ 模式" title="DJ 模式" aria-pressed="false">
+              <span>FM</span>
+            </button>
+            <button id="prevBtn" class="round-btn" type="button" aria-label="上一首" title="上一首">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6v12M18 6l-8 6 8 6V6z"></path></svg>
+            </button>
+            <button id="playBtn" class="play-btn" type="button" aria-label="播放" title="播放">
+              <span id="playIcon"></span>
+            </button>
+            <button id="nextBtn" class="round-btn" type="button" aria-label="下一首" title="下一首">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6v12M6 6l8 6-8 6V6z"></path></svg>
+            </button>
+            <button id="playModeBtn" class="round-btn mode-btn" type="button" aria-label="播放模式：顺序播放" title="顺序播放" data-mode="order">
+              <span aria-hidden="true"></span>
+            </button>
+            <button id="queueToggle" class="round-btn queue-icon-btn" type="button" aria-label="播放列表" title="播放列表" aria-expanded="false" aria-controls="queuePopover">
+              <span class="queue-icon" aria-hidden="true"></span>
+              <strong id="nextTrackTitle" class="sr-only">准备中</strong>
+            </button>
+          </div>
+          <div id="queuePopover" class="queue-popover player-queue-popover" hidden>
+            <div class="queue-popover-head">
+              <span>当前播放</span>
+              <small>0 首</small>
+            </div>
+          <div id="queuePanelList" class="queue-panel-list"></div>
+        </div>
+        </section>
+
+        <section class="radio-recommend-zone" aria-label="推荐入口">
+          <div class="radio-recommend-grid">
+            <button id="dailyRecommendCard" class="radio-recommend-card" type="button" data-recommend-panel="daily">
+              <span id="dailyRecommendCover" class="recommend-card-cover" aria-hidden="true">
+                <b id="dailyRecommendMonth">--</b>
+                <em id="dailyRecommendDay">--</em>
+              </span>
+              <span>网易云</span>
+              <strong>每日推荐</strong>
+              <small id="dailyRecommendMeta">点击读取今天推荐的歌曲</small>
+            </button>
+            <button id="claudeRecommendCard" class="radio-recommend-card" type="button" data-recommend-panel="claude">
+              <span class="recommend-card-cover recommend-card-claude" aria-hidden="true">
+                <i class="claudio-avatar tiny"></i>
+              </span>
+              <span>Claudio</span>
+              <strong>Claude 私人推荐</strong>
+              <small>稍后根据你的口味生成</small>
+            </button>
+          </div>
+          <div id="radioRecommendPanel" class="radio-recommend-panel" hidden>
+            <div class="radio-recommend-head">
+              <div>
+                <span id="radioRecommendKicker">推荐</span>
+                <h3 id="radioRecommendTitle">每日推荐</h3>
+              </div>
+              <div class="radio-recommend-actions">
+                <button id="historyRecommendBtn" class="mini-btn ghost" type="button">历史推荐</button>
+                <button id="radioRecommendClose" class="mini-btn ghost" type="button">收起</button>
+              </div>
+            </div>
+            <div id="radioRecommendList" class="playlist-track-list"></div>
+          </div>
+        </section>
+
+        <section class="lower-grid">
+          <article class="insight-card claudio-dialog">
+            <header>
+              <div class="claudio-title">
+                <span class="claudio-avatar" aria-hidden="true"><i></i><b></b><em></em></span>
+                <h2>Claudio <span id="djOnlineDot" class="dj-online-dot is-online" aria-label="DJ 在线" title="DJ 在线"></span></h2>
+              </div>
+            </header>
+            <div id="insightBody" class="insight-body" hidden><p id="djLine">正在准备今天的私人电台。</p></div>
+            <div id="chatLog" class="chat-log claudio-chat"></div>
+            <form id="chatForm" class="chat-form">
+              <input id="chatInput" autocomplete="off" placeholder="和 Claudio 聊聊..." />
+              <div class="chat-actions">
+                <button id="sttBtn" class="voice-input-btn" type="button" aria-label="语音转文字" title="语音转文字"><span class="mic-icon" aria-hidden="true"></span></button>
+                <button class="send-btn" type="submit" aria-label="发送"><span class="send-icon" aria-hidden="true"></span></button>
+              </div>
+            </form>
+          </article>
+
+        </section>
+      </section>
+
+      <section id="playerPage" class="app-page player-page" data-page="player" hidden>
+        <header class="player-detail-topbar">
+          <button id="playerBackBtn" class="player-back-btn" type="button" aria-label="返回">
+            <span aria-hidden="true"></span>
+          </button>
+          <div class="player-detail-title">
+            <h2 id="playerPageTitle">加载中</h2>
+            <p id="playerPageArtist">正在连接 Claudio</p>
+          </div>
+        </header>
+
+        <section class="player-lyrics-panel" aria-label="歌词">
+          <div id="playerLyrics" class="player-lyrics">
+            <div class="player-lyric-item is-current">
+              <span>歌词加载中...</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="player-detail-controls" aria-label="播放器控制">
+          <div class="player-detail-like-row">
+            <button id="playerLikeBtn" class="player-icon-btn player-like-btn" type="button" aria-label="喜欢" title="喜欢">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 8.8c0 5.2-8.5 9.7-8.5 9.7S3.5 14 3.5 8.8A4.4 4.4 0 0 1 12 7a4.4 4.4 0 0 1 8.5 1.8z"></path></svg>
+            </button>
+          </div>
+          <div class="player-detail-timeline">
+            <input id="playerProgress" type="range" min="0" max="1000" value="0" aria-label="播放进度" />
+            <div class="player-detail-track" aria-hidden="true">
+              <span id="playerProgressFill"></span>
+            </div>
+            <div class="player-detail-time">
+              <span id="playerElapsed">0:00</span>
+              <span id="playerDuration">0:00</span>
+            </div>
+          </div>
+          <div class="player-detail-actions">
+            <button id="playerModeBtn" class="player-icon-btn" type="button" aria-label="播放模式：顺序播放" title="顺序播放" data-mode="order">
+              <span aria-hidden="true"></span>
+            </button>
+            <button id="playerPrevBtn" class="player-icon-btn" type="button" aria-label="上一首" title="上一首">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6v12M18 6l-8 6 8 6V6z"></path></svg>
+            </button>
+            <button id="playerPlayBtn" class="player-main-play" type="button" aria-label="播放" title="播放">
+              <span id="playerPlayIcon" aria-hidden="true"></span>
+            </button>
+            <button id="playerNextBtn" class="player-icon-btn" type="button" aria-label="下一首" title="下一首">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6v12M6 6l8 6-8 6V6z"></path></svg>
+            </button>
+            <button id="playerQueueBtn" class="player-icon-btn player-queue-btn" type="button" aria-label="播放队列" title="播放队列" aria-expanded="false" aria-controls="playerQueuePanel">
+              <span class="queue-icon" aria-hidden="true"></span>
+            </button>
+          </div>
+        </section>
+
+        <div id="playerQueuePanel" class="queue-popover player-detail-queue" hidden>
+          <div class="queue-popover-head">
+            <span>当前播放</span>
+            <small>0 首</small>
+          </div>
+          <div id="playerQueueList" class="queue-panel-list"></div>
+        </div>
+      </section>
+
+      <div id="queueSheet" class="global-queue-sheet" hidden>
+        <div class="queue-sheet-grabber" aria-hidden="true"></div>
+        <div class="queue-popover-head">
+          <span>当前播放</span>
+          <small>0 首</small>
+        </div>
+        <div id="queueSheetMode"></div>
+        <div id="queueSheetList" class="queue-panel-list"></div>
+      </div>
+
+      <section id="minePage" class="app-page mine-page" data-page="mine" hidden>
+        <section class="profile-panel" aria-label="我的资料">
+          <div id="neteaseAvatar" class="user-avatar" aria-hidden="true"></div>
+          <h2 id="neteaseProfileName">我的</h2>
+          <button id="neteaseLoginBtn" class="mini-btn" type="button">登录网易云</button>
+          <p id="neteaseLoginStatus" class="settings-hint">登录后同步你的歌单和喜欢音乐。</p>
+          <div id="neteaseLoginMethodsPanel" class="netease-login-methods-panel" hidden>
+            <div id="neteaseQrPanel" class="netease-qr-panel" hidden>
+              <img id="neteaseQrImage" alt="网易云登录二维码" />
+              <span>用网易云音乐扫码登录</span>
+            </div>
+            <form id="neteasePasswordLoginForm" class="netease-password-login-form" autocomplete="off">
+              <select id="neteasePasswordMode" aria-label="网易云登录方式">
+                <option value="qr">二维码登录</option>
+                <option value="cellphone">手机号</option>
+                <option value="email">邮箱账号</option>
+              </select>
+              <input id="neteasePhoneInput" type="tel" inputmode="tel" autocomplete="username" placeholder="手机号" />
+              <input id="neteaseEmailInput" type="email" autocomplete="username" placeholder="邮箱账号" />
+              <input id="neteasePasswordInput" type="password" autocomplete="current-password" placeholder="密码" />
+              <input id="neteaseCaptchaInput" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="短信验证码（可选）" />
+              <input id="neteaseCountryCodeInput" type="text" inputmode="numeric" value="86" aria-label="国家区号" />
+              <button id="neteasePasswordSubmitBtn" class="mini-btn" type="submit">账号登录</button>
+            </form>
+          </div>
+        </section>
+
+        <section class="mine-playlists" aria-label="歌单列表">
+          <div class="mine-section-head">
+            <h3>歌单列表</h3>
+            <label class="playlist-name-search">
+              <span class="search-icon" aria-hidden="true"></span>
+              <input id="playlistNameSearch" type="search" autocomplete="off" placeholder="搜索歌单" />
+            </label>
+            <span id="minePlaylistCount">0 首</span>
+          </div>
+          <div id="minePlaylistList" class="mine-playlist-list"></div>
+
+          <div id="musicSearchPage" class="music-search-page" hidden>
+            <div class="playlist-detail-topbar"></div>
+            <section class="search-result-hero">
+              <span>搜索结果</span>
+              <h2 id="musicSearchPageTitle">搜索音乐</h2>
+              <p id="musicSearchPageCount">0 首</p>
+            </section>
+            <div id="musicSearchPageList" class="playlist-track-list"></div>
+          </div>
+          <div id="minePlaylistDetail" class="mine-playlist-detail" hidden>
+            <section class="playlist-hero" aria-label="歌单详情">
+              <div id="playlistHeroCover" class="playlist-hero-cover" aria-hidden="true"></div>
+              <div class="playlist-hero-copy">
+                <span>歌单</span>
+                <h2 id="playlistHeroTitle">歌单名称</h2>
+                <p id="playlistHeroDesc">歌单描述</p>
+              </div>
+            </section>
+            <div id="playlistTrackList" class="playlist-track-list"></div>
+          </div>
+        </section>
+      </section>
+
+      <section id="artistPage" class="app-page artist-page" data-page="artist" hidden>
+        <div id="artistTopbar" class="artist-detail-topbar">
+          <button id="artistBackBtn" class="playlist-back-btn artist-profile-back" type="button" aria-label="返回">
+            <span aria-hidden="true"></span>
+          </button>
+        </div>
+        <section id="artistProfilePanel" class="profile-panel artist-profile-panel" aria-label="歌手资料">
+          <div id="artistHeroAvatar" class="artist-hero-avatar" aria-hidden="true"></div>
+          <span>歌手</span>
+          <h2 id="artistHeroName">歌手主页</h2>
+          <p id="artistHeroDesc">正在加载网易云歌手信息。</p>
+        </section>
+        <div id="mineArtistDetail" class="mine-artist-detail">
+          <div class="artist-tabs" role="tablist" aria-label="歌手内容">
+            <button class="artist-tab is-active" type="button" data-artist-tab="songs" role="tab" aria-selected="true">
+              <span>热门歌曲</span>
+              <small id="artistSongCount">0 首</small>
+            </button>
+            <button class="artist-tab" type="button" data-artist-tab="albums" role="tab" aria-selected="false">
+              <span>专辑</span>
+              <small id="artistAlbumCount">0 张</small>
+            </button>
+          </div>
+          <section id="artistSongsPanel" class="artist-section" role="tabpanel">
+            <div id="artistSongList" class="playlist-track-list"></div>
+            <div id="artistSongPager" class="artist-pager"></div>
+          </section>
+          <section id="artistAlbumsPanel" class="artist-section" role="tabpanel" hidden>
+            <div id="artistAlbumList" class="artist-album-list"></div>
+            <div id="artistAlbumPager" class="artist-pager"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="albumPage" class="app-page album-page" data-page="album" hidden>
+        <div id="albumTopbar" class="artist-detail-topbar album-detail-topbar">
+          <button id="albumBackBtn" class="playlist-back-btn artist-profile-back album-back-btn" type="button" aria-label="返回">
+            <span aria-hidden="true"></span>
+          </button>
+        </div>
+        <div id="albumDetail" class="mine-playlist-detail album-detail">
+          <section class="playlist-hero album-hero" aria-label="专辑详情">
+            <div id="albumHeroCover" class="playlist-hero-cover" aria-hidden="true"></div>
+            <div class="playlist-hero-copy">
+              <span>专辑</span>
+              <h2 id="albumHeroTitle">专辑名称</h2>
+              <p id="albumHeroDesc">专辑描述</p>
+            </div>
+          </section>
+          <div id="albumTrackList" class="playlist-track-list album-track-list"></div>
+        </div>
+      </section>
+
+      <section id="settingsPage" class="app-page settings-page" data-page="settings" hidden>
+        <header class="settings-topbar">
+          <button id="settingsBackBtn" class="playlist-back-btn" type="button" aria-label="返回">
+            <span aria-hidden="true"></span>
+          </button>
+          <h2>设置</h2>
+        </header>
+
+        <section class="settings-list" aria-label="设置列表">
+          <details class="settings-item settings-panel northern-settings">
+            <summary class="settings-summary">
+              <span>
+                <strong>背景设置</strong>
+                <small>背景颜色和自定义背景图</small>
+              </span>
+              <i aria-hidden="true"></i>
+            </summary>
+            <div class="settings-panel-body">
+              <fieldset class="northern-choice-group" aria-label="背景">
+                <label class="northern-choice">
+                  <input type="radio" name="northernBackground" value="dark" />
+                  <span class="northern-swatch northern-swatch-dark" aria-hidden="true"></span>
+                  <b>深色</b>
+                </label>
+                <label class="northern-choice">
+                  <input type="radio" name="northernBackground" value="light" />
+                  <span class="northern-swatch northern-swatch-light" aria-hidden="true"></span>
+                  <b>浅色</b>
+                </label>
+                <label class="northern-choice">
+                  <input type="radio" name="northernBackground" value="custom" />
+                  <span id="northernImagePreview" class="northern-swatch northern-swatch-custom" aria-hidden="true"></span>
+                  <b>自定义</b>
+                </label>
+              </fieldset>
+              <label class="northern-upload">
+                <span>上传背景图</span>
+                <input id="northernBackgroundInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+              </label>
+              <p id="northernBackgroundStatus" class="settings-hint" aria-live="polite">上传后会保存到本地，刷新页面也会保留。</p>
+            </div>
+          </details>
+
+          <details class="settings-item settings-panel voice-settings">
+            <summary class="settings-summary">
+              <span>
+                <strong>语音模型设置</strong>
+                <small>朗读音色、自定义音色描述</small>
+              </span>
+              <i aria-hidden="true"></i>
+            </summary>
+            <div class="settings-panel-body">
+              <label>
+                <span>预置音色</span>
+                <select id="voicePresetSelect"></select>
+              </label>
+              <label>
+                <span>自定义音色集合</span>
+                <select id="voiceCustomSelect"></select>
+              </label>
+              <label>
+                <span>自定义音色描述</span>
+                <textarea id="voiceCustomPrompt" rows="4" placeholder="例如：温柔、低沉、像深夜电台男 DJ，语速稍慢，情绪稳定。"></textarea>
+              </label>
+              <div class="voice-custom-actions">
+                <button id="voiceCustomSaveBtn" class="mini-btn" type="button">保存为自定义音色</button>
+                <button id="voiceCustomDeleteBtn" class="mini-btn ghost" type="button">删除当前自定义音色</button>
+              </div>
+              <button id="voiceSettingsSaveBtn" class="mini-btn wide" type="button">保存并重新生成语音</button>
+              <p class="settings-hint">自定义音色集合选择“使用预置音色”时走预置音色；选择某个自定义音色时优先使用 mimo-v2.5-tts-voicedesign。</p>
+            </div>
+          </details>
+
+          <details class="settings-item settings-panel api-settings">
+            <summary class="settings-summary">
+              <span>
+                <strong>API 模型设置</strong>
+                <small>语音生成、DeepSeek、和风天气</small>
+              </span>
+              <i aria-hidden="true"></i>
+            </summary>
+            <form id="apiSettingsForm" class="settings-panel-body api-settings-form">
+              <fieldset>
+                <legend>语音生成</legend>
+                <label>
+                  <span>MiMo TTS API KEY</span>
+                  <span class="secret-input-wrap">
+                    <input id="mimoTtsKeyInput" name="mimoTtsKey" type="password" autocomplete="off" placeholder="留空不修改" data-secret-input />
+                    <button class="secret-toggle" type="button" data-secret-toggle="mimoTtsKeyInput" aria-label="显示 MiMo TTS API KEY" title="显示/隐藏 API KEY">
+                      <span aria-hidden="true"></span>
+                    </button>
+                  </span>
+                </label>
+                <label>
+                  <span>语音模型</span>
+                  <input id="mimoTtsModelInput" name="mimoTtsModel" type="text" autocomplete="off" />
+                </label>
+                <label>
+                  <span>自定义音色模型</span>
+                  <input id="mimoVoiceDesignModelInput" name="mimoVoiceDesignModel" type="text" autocomplete="off" />
+                </label>
+              </fieldset>
+
+              <fieldset>
+                <legend>DeepSeek</legend>
+                <label>
+                  <span>DeepSeek API KEY</span>
+                  <span class="secret-input-wrap">
+                    <input id="deepseekKeyInput" name="openaiKey" type="password" autocomplete="off" placeholder="留空不修改" data-secret-input />
+                    <button class="secret-toggle" type="button" data-secret-toggle="deepseekKeyInput" aria-label="显示 DeepSeek API KEY" title="显示/隐藏 API KEY">
+                      <span aria-hidden="true"></span>
+                    </button>
+                  </span>
+                </label>
+                <label>
+                  <span>Base URL</span>
+                  <input id="deepseekBaseUrlInput" name="openaiBaseUrl" type="url" autocomplete="off" />
+                </label>
+                <label>
+                  <span>模型</span>
+                  <input id="deepseekModelInput" name="openaiModel" type="text" autocomplete="off" />
+                </label>
+              </fieldset>
+
+              <fieldset>
+                <legend>远程 Claude FM API</legend>
+                <label>
+                  <span>Base URL</span>
+                  <input id="remoteCapabilityBaseUrlInput" name="remoteCapabilityBaseUrl" type="url" autocomplete="off" placeholder="https://fm.example.com" />
+                </label>
+                <p class="settings-hint">APK 或远程客户端可用这个地址代理 Claude FM 的聊天、语音和能力接口。</p>
+              </fieldset>
+
+              <fieldset>
+                <legend>天气</legend>
+                <label>
+                  <span>和风天气 API KEY</span>
+                  <span class="secret-input-wrap">
+                    <input id="qweatherKeyInput" name="qweatherApiKey" type="password" autocomplete="off" placeholder="留空不修改" data-secret-input />
+                    <button class="secret-toggle" type="button" data-secret-toggle="qweatherKeyInput" aria-label="显示和风天气 API KEY" title="显示/隐藏 API KEY">
+                      <span aria-hidden="true"></span>
+                    </button>
+                  </span>
+                </label>
+                <label>
+                  <span>API Host</span>
+                  <input id="qweatherHostInput" name="qweatherApiHost" type="text" autocomplete="off" />
+                </label>
+                <label>
+                  <span>默认 Location</span>
+                  <input id="qweatherLocationInput" name="qweatherLocation" type="text" autocomplete="off" />
+                </label>
+                <label>
+                  <span>默认城市名</span>
+                  <input id="weatherCityInput" name="weatherCity" type="text" autocomplete="off" />
+                </label>
+              </fieldset>
+
+              <fieldset>
+                <legend>网易云音乐</legend>
+                <label>
+                  <span>播放音质</span>
+                  <select id="neteaseAudioLevelSelect" name="neteaseAudioLevel">
+                    <option value="standard">标准</option>
+                    <option value="higher">较高</option>
+                    <option value="exhigh">极高</option>
+                    <option value="lossless">无损</option>
+                    <option value="hires">Hi-Res</option>
+                  </select>
+                </label>
+              </fieldset>
+
+              <button id="apiSettingsSaveBtn" class="mini-btn wide" type="submit">保存 API 设置</button>
+              <p id="apiSettingsStatus" class="settings-hint" aria-live="polite">密钥只保存在本地 .env，点击眼睛可以临时查看明文。</p>
+            </form>
+          </details>
+        </section>
+      </section>
+
+      <div id="collectModal" class="collect-modal" hidden>
+        <button id="collectModalBackdrop" class="collect-modal-backdrop" type="button" aria-label="关闭收藏弹窗"></button>
+        <section class="collect-dialog" role="dialog" aria-modal="true" aria-labelledby="collectModalTitle">
+          <header>
+            <div>
+              <span>收藏到歌单</span>
+              <h2 id="collectModalTitle">选择歌单</h2>
+              <p id="collectModalTrack">请选择要收藏到的网易云歌单。</p>
+            </div>
+            <button id="collectModalClose" class="collect-close-btn" type="button" aria-label="关闭">
+              <span aria-hidden="true"></span>
+            </button>
+          </header>
+          <div id="collectPlaylistList" class="collect-playlist-list"></div>
+        </section>
+      </div>
+
+      <audio id="audio" preload="metadata"></audio>
+    </main>
+
+    <header id="appTopChrome" class="app-top-chrome" aria-label="顶部导航">
+      <div class="app-top-layer app-top-mine mine-sticky-top" aria-label="我的顶部栏">
+        <div class="mine-profile-mini">
+          <div id="neteaseStickyAvatar" class="user-avatar" aria-hidden="true"></div>
+          <h2 id="neteaseStickyName">我的</h2>
+        </div>
+        <div class="mine-top-actions">
+          <button id="musicSearchResultBackBtn" class="playlist-back-btn search-result-top-back" type="button" aria-label="返回" hidden>
+            <span aria-hidden="true"></span>
+          </button>
+          <button id="musicSearchPageBtn" class="search-page-btn bare-icon-btn" type="button" aria-label="搜索音乐" title="搜索音乐">
+            <span aria-hidden="true"></span>
+          </button>
+          <button id="settingsBtn" class="settings-btn bare-icon-btn" type="button" aria-label="设置" title="设置">
+            <span aria-hidden="true"></span>
+          </button>
+        </div>
+        <div class="mine-search-wrap">
+          <div class="mine-search" role="search">
+            <span class="search-icon" aria-hidden="true"></span>
+            <input id="musicSearch" type="search" autocomplete="off" placeholder="搜索音乐" aria-label="搜索音乐" />
+            <button id="mineSearchSubmit" class="mine-search-submit" type="button">搜索</button>
+          </div>
+          <div id="musicSearchResults" class="music-search-results" hidden></div>
+        </div>
+      </div>
+
+      <div class="app-top-layer app-top-playlist" aria-label="歌单详情顶部栏">
+        <button id="playlistBackBtn" class="playlist-back-btn" type="button" aria-label="返回">
+          <span aria-hidden="true"></span>
+        </button>
+        <label id="playlistSearchBox" class="playlist-search">
+          <button id="playlistSearchToggle" class="playlist-search-toggle" type="button" aria-label="搜索歌单内歌曲" aria-expanded="false">
+            <span class="search-icon" aria-hidden="true"></span>
+          </button>
+          <input id="playlistSearch" type="search" autocomplete="off" placeholder="搜索歌单内歌曲" />
+        </label>
+      </div>
+    </header>
+
+    <nav class="app-bottom-chrome" aria-label="底部导航">
+      <button class="bottom-tab is-active" type="button" data-page-target="radio" aria-pressed="true">
+        <span class="status-claude-avatar" aria-hidden="true"><i></i><b></b></span>
+        <span class="bottom-label">首页</span>
+      </button>
+      <button class="bottom-tab" type="button" data-page-target="mine" aria-pressed="false">
+        <span class="status-user-avatar" aria-hidden="true"></span>
+        <span class="bottom-label">我的</span>
+      </button>
+    </nav>
+
+    <script src="/app.js?v=20260608-android-api1" type="module"></script>
+    <script src="/liquid-nav.js?v=20260608-android-api1" type="module"></script>
+  </body>
+</html>

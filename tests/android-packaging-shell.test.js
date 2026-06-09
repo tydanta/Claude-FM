@@ -1,0 +1,115 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+
+const repoRoot = path.resolve(import.meta.dirname, "..");
+const readText = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
+
+const packageJson = JSON.parse(readText("package.json"));
+const capacitorConfig = JSON.parse(readText("capacitor.config.json"));
+const appBuildGradle = readText("android/app/build.gradle");
+const manifest = readText("android/app/src/main/AndroidManifest.xml");
+const mainActivity = readText("android/app/src/main/java/fm/claude/privatefm/MainActivity.java");
+const mediaPlugin = readText("android/app/src/main/java/fm/claude/privatefm/ClaudeMediaPlugin.java");
+const mediaService = readText("android/app/src/main/java/fm/claude/privatefm/ClaudeMediaService.java");
+const heartIcon = readText("android/app/src/main/res/drawable/ic_media_heart.xml");
+const heartFilledIcon = readText("android/app/src/main/res/drawable/ic_media_heart_filled.xml");
+const mediaNative = `${mediaPlugin}\n${mediaService}`;
+const androidStyles = readText("android/app/src/main/res/values/styles.xml");
+const appEntry = readText("public/app.js");
+const indexHtml = readText("public/index.html");
+const androidNodeApi = readText("public/modules/androidNodeApi.js");
+const nodeBootstrap = readText("android-node/main.js");
+const assetScript = readText("scripts/prepare-android-node-api.js");
+const patchScript = readText("scripts/patch-nodejs-mobile-cordova.js");
+
+assert.equal(capacitorConfig.appId, "fm.claude.privatefm");
+assert.match(appBuildGradle, /namespace\s*=\s*"fm\.claude\.privatefm"/);
+assert.match(appBuildGradle, /applicationId\s+"fm\.claude\.privatefm"/);
+assert.doesNotMatch(appBuildGradle, /fm\.claude\.private(?!fm)/);
+
+assert.match(packageJson.scripts["android:sync"], /android:prepare-node-api/);
+assert.match(packageJson.scripts["android:build:debug"], /android:prepare-node-api/);
+
+assert.doesNotMatch(manifest, /android:name="\.LocalNeteaseApiService"/);
+assert.match(manifest, /android\.permission\.ACCESS_COARSE_LOCATION/);
+assert.match(manifest, /android\.permission\.ACCESS_FINE_LOCATION/);
+assert.match(manifest, /android\.permission\.POST_NOTIFICATIONS/);
+assert.match(manifest, /android\.permission\.FOREGROUND_SERVICE/);
+assert.match(manifest, /android\.permission\.FOREGROUND_SERVICE_MEDIA_PLAYBACK/);
+assert.match(manifest, /android\.permission\.WAKE_LOCK/);
+assert.match(manifest, /android:name="\.ClaudeMediaService"/);
+assert.match(manifest, /android:foregroundServiceType="mediaPlayback"/);
+assert.doesNotMatch(mainActivity, /startService\(/);
+assert.match(mainActivity, /registerPlugin\(ClaudeMediaPlugin\.class\)/);
+assert.match(mainActivity, /super\.onCreate\(savedInstanceState\)/);
+assert.match(mainActivity, /setDecorFitsSystemWindows\(false\)/);
+assert.match(mainActivity, /LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES/);
+assert.match(mainActivity, /setStatusBarColor\(Color\.TRANSPARENT\)/);
+assert.match(mainActivity, /setNavigationBarColor\(Color\.TRANSPARENT\)/);
+assert.match(androidStyles, /android:windowLayoutInDisplayCutoutMode">shortEdges/);
+assert.match(androidStyles, /android:statusBarColor">@android:color\/transparent/);
+assert.match(androidStyles, /android:navigationBarColor">@android:color\/transparent/);
+assert.match(androidStyles, /android:windowDrawsSystemBarBackgrounds">true/);
+assert.match(androidStyles, /android:windowNoTitle">true/);
+assert.match(indexHtml, /viewport-fit=cover/);
+assert.match(appEntry, /startAndroidNeteaseApi\(\)/);
+assert.match(androidNodeApi, /nodejs\.start\("main\.js"/);
+assert.match(androidNodeApi, /redirectOutputToLogcat:\s*true/);
+
+assert.match(mediaPlugin, /@CapacitorPlugin\(name = "ClaudeMedia"\)/);
+assert.match(mediaNative, /MediaSession/);
+assert.match(mediaNative, /setCallback\(new MediaSession\.Callback/);
+assert.match(mediaNative, /NotificationChannel/);
+assert.match(mediaNative, /METADATA_KEY_DURATION/);
+assert.match(mediaNative, /METADATA_KEY_USER_RATING/);
+assert.match(mediaNative, /getLongExtra\("positionMs"/);
+assert.match(mediaNative, /getLongExtra\("durationMs"/);
+assert.match(mediaPlugin, /readLongOption\(PluginCall call,\s*String key/);
+assert.match(mediaPlugin, /call\.getData\(\)\.opt\(key\)/);
+assert.match(mediaPlugin, /putExtra\("positionMs",\s*readLongOption\(call,\s*"positionMs"\)/);
+assert.match(mediaPlugin, /putExtra\("durationMs",\s*readLongOption\(call,\s*"durationMs"\)/);
+assert.match(mediaNative, /setState\(state,\s*positionMs/);
+assert.match(mediaNative, /addCustomAction\(/);
+assert.match(mediaNative, /ACTION_SET_RATING/);
+assert.match(mediaNative, /ACTION_PREVIOUS/);
+assert.match(mediaNative, /ACTION_PLAY_PAUSE/);
+assert.match(mediaNative, /ACTION_NEXT/);
+assert.match(mediaNative, /ACTION_LIKE/);
+assert.match(mediaService, /R\.drawable\.ic_media_heart_filled/);
+assert.match(mediaService, /R\.drawable\.ic_media_heart(?!_filled)/);
+assert.doesNotMatch(mediaService, /btn_star_big_(on|off)/);
+assert.match(heartIcon, /M20\.5,8\.8/);
+assert.match(heartFilledIcon, /M20\.5,8\.8/);
+assert.match(heartIcon, /android:scaleX="0\.72"/);
+assert.match(heartIcon, /android:scaleY="0\.72"/);
+assert.match(heartFilledIcon, /android:scaleX="0\.72"/);
+assert.match(heartFilledIcon, /android:scaleY="0\.72"/);
+assert.match(mediaNative, /onSkipToPrevious/);
+assert.match(mediaNative, /onSkipToNext/);
+assert.match(mediaNative, /onPlay\(\)/);
+assert.match(mediaNative, /onPause\(\)/);
+assert.match(mediaNative, /onSetRating/);
+assert.match(mediaNative, /onCustomAction/);
+assert.match(mediaService, /setShowActionsInCompactView\(0,\s*1,\s*2,\s*3\)/);
+assert.match(mediaPlugin, /notifyListeners\("mediaAction"/);
+
+assert.match(nodeBootstrap, /process\.env\.HOST\s*=\s*"127\.0\.0\.1"/);
+assert.match(nodeBootstrap, /process\.env\.PORT\s*=\s*"3010"/);
+assert.match(nodeBootstrap, /NeteaseCloudMusicApi\/app\.js/);
+
+assert.match(assetScript, /nodejs-project/);
+assert.match(assetScript, /public", "nodejs-project/);
+assert.match(assetScript, /capacitor-cordova-android-plugins/);
+assert.match(assetScript, /NeteaseCloudMusicApi/);
+assert.match(assetScript, /"\.env"/);
+assert.match(assetScript, /"claudio-runtime\.env"/);
+assert.match(assetScript, /nodejs-mobile-cordova-assets/);
+assert.match(assetScript, /builtin_modules/);
+assert.match(assetScript, /fs\.rmSync\(absolutePath/);
+assert.match(patchScript, /jniLibs\.srcDirs/);
+assert.match(patchScript, /libs\/cdvnodejsmobile\/libnode\/bin/);
+
+assert.equal(packageJson.dependencies["nodejs-mobile-cordova"], "^0.4.3");
+
+console.log("android-packaging-shell tests passed");

@@ -1,0 +1,37 @@
+﻿.env
+node_modules/
+android-node/node_modules/
+android-node/package-lock.json
+public/nodejs-project/
+android/app/src/main/assets/nodejs-project/
+android/app/src/main/assets/public/
+android/app/src/main/assets/public/nodejs-project/
+android/app/libs/cdvnodejsmobile/
+android/capacitor-cordova-android-plugins/src/main/assets/www/
+android/capacitor-cordova-android-plugins/libs/cdvnodejsmobile/
+android/capacitor-cordova-android-plugins/src/main/libs/cdvnodejsmobile/
+android/.gradle/
+android/**/build/
+android/**/.cxx/
+android/**/.idea/
+android/local.properties
+
+# Runtime data and generated cache
+data/
+data/cache/
+data/state.json
+data/*.db
+data/*.db-*
+src/server/data/
+
+# Local voice models are large. Keep them as optional local assets.
+models/piper/*.onnx
+
+# OS/editor artifacts
+.DS_Store
+__MACOSX/
+*.log
+.dev-server.pid
+
+.deploy/
+.dexclub/
