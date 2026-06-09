@@ -127,7 +127,9 @@ Copy-Item .env.example .env
 | `NETEASE_URL_CACHE_TTL_MINUTES` | 歌曲 URL 缓存时间 | 否 |
 | `NETEASE_AUDIO_LEVEL` | 音质偏好，例如 `standard` | 否 |
 
-说明：项目依赖 `NeteaseCloudMusicApi`。本地开发时，只要 `npm install` 完成并且 `NETEASE_LOCAL_API_ENABLED=true`，服务会在需要时尝试自动启动本地网易云 API 子进程。
+特别标注：本项目的网易云音乐相关 API 能力来源于 [NeteaseCloudMusicApiEnhanced/api-enhanced](https://github.com/NeteaseCloudMusicApiEnhanced/api-enhanced)。这是非官方网易云音乐 API 项目，本仓库只是将它作为本地/Android 音乐能力的一部分进行适配和调用。
+
+说明：项目依赖网易云音乐非官方 API。当前本地开发链路会通过 npm 依赖和 `NETEASE_LOCAL_API_ENABLED=true` 尝试自动启动本地网易云 API 子进程。
 
 ### AI 聊天与 DJ 文案
 
@@ -303,5 +305,5 @@ npm start
 
 - 这是 Vibe Coding 快速迭代产物，功能密度高，部分 CSS 和交互逻辑仍带有连续打磨留下的覆盖痕迹。
 - README 里的 API 名称以当前代码为准，第三方服务的计费、额度和接口变更需要自己确认。
-- 网易云相关能力依赖非官方 API，稳定性取决于 `NeteaseCloudMusicApi` 和账号状态。
+- 网易云相关能力依赖非官方 API，来源标注为 [NeteaseCloudMusicApiEnhanced/api-enhanced](https://github.com/NeteaseCloudMusicApiEnhanced/api-enhanced)，稳定性取决于该接口项目、账号状态和网易云侧策略。
 - 没有 API key 时应用能运行，但 AI 串场、聊天、真实天气和高质量语音会降级。
