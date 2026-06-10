@@ -225,6 +225,8 @@ const {
   voiceSettingsSaveBtn,
   apiSettingsForm,
   apiSettingsStatus,
+  qualitySettingsForm,
+  qualitySettingsStatus,
   apiSettingsInputs,
   secretToggles,
   userProfilePanel,
@@ -575,6 +577,8 @@ const apiSettingsRuntimeController = createApiSettingsRuntimeController({
   elements: {
     apiSettingsForm,
     apiSettingsStatus,
+    qualitySettingsForm,
+    qualitySettingsStatus,
     apiSettingsInputs,
     secretToggles
   },

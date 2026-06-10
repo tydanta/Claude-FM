@@ -27,6 +27,7 @@ export function createRuntimeSettingsService({
   function getEditableSettings({ revealSecrets = false } = {}) {
     return {
       mimoTtsKey: revealSecrets ? config.mimoTtsKey : maskSecret(config.mimoTtsKey),
+      mimoTtsBaseUrl: config.mimoTtsBaseUrl,
       mimoTtsModel: config.mimoTtsModel,
       mimoVoiceDesignModel: config.mimoVoiceDesignModel,
       openaiBaseUrl: config.openaiBaseUrl,
@@ -45,6 +46,7 @@ export function createRuntimeSettingsService({
     const text = String(value ?? "").trim();
     if (!text) return "";
     if (key === "openaiBaseUrl") return text.replace(/\/$/, "");
+    if (key === "mimoTtsBaseUrl") return text.replace(/\/$/, "");
     if (key === "remoteCapabilityBaseUrl") return text.replace(/\/$/, "");
     if (key === "qweatherApiHost") return text.replace(/^https?:\/\//, "").replace(/\/$/, "");
     if (key === "neteaseAudioLevel") return normalizeNeteaseAudioLevel(text);

@@ -12,6 +12,12 @@ assert.match(
 
 assert.match(
   compactCss,
+  /body\[data-page="mine"\]:not\(\[data-mine-view="search"\]\) \.search-result-top-back \{ display: none !important; visibility: hidden !important; pointer-events: none !important; \}/i,
+  "mine root/list view should keep the search result back button hidden in every theme"
+);
+
+assert.match(
+  compactCss,
   /\.app-top-mine \.mine-search-wrap, body\.mine-title-pinned \.app-top-mine \.mine-search-wrap \{ position: absolute !important; left: 58px !important; top: var\(--app-top-control-top\) !important; z-index: 5 !important; grid-column: auto !important; width: calc\(var\(--app-shell-width\) - 154px\) !important; max-width: calc\(var\(--app-shell-width\) - 154px\) !important;/i,
   "mine search bar should be narrower so it does not collide with the top actions"
 );

@@ -441,6 +441,10 @@
                   </span>
                 </label>
                 <label>
+                  <span>MiMo Base URL</span>
+                  <input id="mimoTtsBaseUrlInput" name="mimoTtsBaseUrl" type="url" autocomplete="off" />
+                </label>
+                <label>
                   <span>语音模型</span>
                   <input id="mimoTtsModelInput" name="mimoTtsModel" type="text" autocomplete="off" />
                 </label>
@@ -505,22 +509,32 @@
                 </label>
               </fieldset>
 
-              <fieldset>
-                <legend>网易云音乐</legend>
-                <label>
-                  <span>播放音质</span>
-                  <select id="neteaseAudioLevelSelect" name="neteaseAudioLevel">
-                    <option value="standard">标准</option>
-                    <option value="higher">较高</option>
-                    <option value="exhigh">极高</option>
-                    <option value="lossless">无损</option>
-                    <option value="hires">Hi-Res</option>
-                  </select>
-                </label>
-              </fieldset>
-
               <button id="apiSettingsSaveBtn" class="mini-btn wide" type="submit">保存 API 设置</button>
               <p id="apiSettingsStatus" class="settings-hint" aria-live="polite">密钥只保存在本地 .env，点击眼睛可以临时查看明文。</p>
+            </form>
+          </details>
+
+          <details class="settings-item settings-panel audio-quality-settings">
+            <summary class="settings-summary">
+              <span>
+                <strong>音质设置</strong>
+                <small>网易云播放音质</small>
+              </span>
+              <i aria-hidden="true"></i>
+            </summary>
+            <form id="qualitySettingsForm" class="settings-panel-body audio-quality-settings-form">
+              <label>
+                <span>播放音质</span>
+                <select id="neteaseAudioLevelSelect" name="neteaseAudioLevel">
+                  <option value="standard">标准</option>
+                  <option value="higher">较高</option>
+                  <option value="exhigh">极高</option>
+                  <option value="lossless">无损</option>
+                  <option value="hires">Hi-Res</option>
+                </select>
+              </label>
+              <button id="qualitySettingsSaveBtn" class="mini-btn wide" type="submit">保存音质设置</button>
+              <p id="qualitySettingsStatus" class="settings-hint" aria-live="polite">切换后会重新获取网易云播放链接。</p>
             </form>
           </details>
         </section>

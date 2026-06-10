@@ -100,13 +100,9 @@ export function createNorthernBackgroundRuntimeController({
       return;
     }
     setStatus("正在上传背景图...");
+    let image = "";
     try {
-      const image = await readFile(file);
-      if (isLocalBackgroundRuntime()) {
-        applyNorthernBackground({ mode: "custom", imageUrl: image });
-        setStatus("背景图已保存并应用。");
-        return;
-      }
+      image = await readFile(file);
       const data = await api("/api/background/upload", {
         method: "POST",
         body: JSON.stringify({ image }),
@@ -115,6 +111,11 @@ export function createNorthernBackgroundRuntimeController({
       applyNorthernBackground(data.background || {});
       setStatus("背景图已保存并应用。");
     } catch {
+      if (isLocalBackgroundRuntime() && image) {
+        applyNorthernBackground({ mode: "custom", imageUrl: image });
+        setStatus("本地服务暂时不可用，已临时应用背景图。");
+        return;
+      }
       setStatus("背景图上传失败，请换一张图片再试。");
     } finally {
       if (northernBackgroundInput) northernBackgroundInput.value = "";

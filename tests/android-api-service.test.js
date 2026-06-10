@@ -8,6 +8,7 @@ const require = createRequire(import.meta.url);
 const {
   createClaudeCapabilityServer,
   createRuntimeConfig,
+  getSettingsPath,
   normalizeLocation,
   parseEnvFileContent
 } = require("../android-node/api-service.js");
@@ -22,6 +23,17 @@ assert.deepEqual(normalizeLocation({ latitude: 31.23456, longitude: 121.4737 }),
   qweatherLocation: "121.47,31.23"
 });
 assert.equal(normalizeLocation({ lat: 91, lon: 1 }), null);
+
+{
+  const defaultRoot = await mkdtemp(path.join(os.tmpdir(), "claude-fm-android-defaults-"));
+  const dataRoot = await mkdtemp(path.join(os.tmpdir(), "claude-fm-android-data-"));
+  assert.equal(getSettingsPath("", { datadir: () => dataRoot }), path.join(dataRoot, "claudio-android-runtime-settings.json"));
+  const config = createRuntimeConfig(defaultRoot, path.join(defaultRoot, "settings.json"), defaultRoot);
+  assert.equal(config.openaiBaseUrl, "https://api.deepseek.com");
+  assert.equal(config.openaiChatPath, "/chat/completions");
+  assert.equal(config.mimoTtsBaseUrl, "https://api.xiaomimimo.com/v1");
+  assert.equal(config.qweatherApiHost, "devapi.qweather.com");
+}
 
 {
   const bundledRoot = await mkdtemp(path.join(os.tmpdir(), "claude-fm-android-env-"));
@@ -132,6 +144,49 @@ Object.assign(process.env, Object.fromEntries(Object.entries(envSnapshot).filter
   assert.equal(payload.provider, "local-fallback");
   assert.match(payload.replyError, /unreadable text/);
   assert.doesNotMatch(payload.message.content, /\?\?D/);
+}
+
+{
+  calls.length = 0;
+  const settingsRes = createRes();
+  await service.handler(createReq("POST", "/api/settings", {
+    openaiBaseUrl: "https://api.deepseek.com/",
+    openaiKey: "sk-deepseek",
+    mimoTtsKey: "mk",
+    mimoTtsBaseUrl: "https://api.xiaomimimo.com/v1/",
+    qweatherApiKey: "qw"
+  }), settingsRes);
+  assert.equal(settingsRes.status, 200);
+
+  const revealRes = createRes();
+  await service.handler(createReq("GET", "/api/settings?reveal=1"), revealRes);
+  const settings = JSON.parse(revealRes.body).settings;
+  assert.equal(settings.openaiBaseUrl, "https://api.deepseek.com");
+  assert.equal(settings.openaiKey, "sk-deepseek");
+  assert.equal(settings.mimoTtsKey, "mk");
+  assert.equal(settings.mimoTtsBaseUrl, "https://api.xiaomimimo.com/v1");
+  assert.equal(settings.qweatherApiKey, "qw");
+}
+
+{
+  const unwritableRoot = await mkdtemp(path.join(os.tmpdir(), "claude-fm-android-unwritable-"));
+  const serviceWithUnwritableSettings = createClaudeCapabilityServer({
+    rootDir: unwritableRoot,
+    settingsPath: unwritableRoot,
+    createServer: (handler) => ({ handler, listen() {} })
+  });
+  const settingsRes = createRes();
+  await serviceWithUnwritableSettings.handler(createReq("POST", "/api/settings", {
+    openaiKey: "sk-memory",
+    mimoTtsKey: "mk-memory"
+  }), settingsRes);
+  assert.equal(settingsRes.status, 200);
+
+  const revealRes = createRes();
+  await serviceWithUnwritableSettings.handler(createReq("GET", "/api/settings?reveal=1"), revealRes);
+  const settings = JSON.parse(revealRes.body).settings;
+  assert.equal(settings.openaiKey, "sk-memory");
+  assert.equal(settings.mimoTtsKey, "mk-memory");
 }
 
 {

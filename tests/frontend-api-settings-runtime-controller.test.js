@@ -77,6 +77,18 @@ function createHarness({ apiSettings, revealedSettings, saveSettings, apiError, 
     value: "sk-old",
     secret: true
   });
+  const mimoTtsBaseUrl = createInput({
+    id: "mimoTtsBaseUrlInput",
+    name: "mimoTtsBaseUrl"
+  });
+  const openaiBaseUrl = createInput({
+    id: "deepseekBaseUrlInput",
+    name: "openaiBaseUrl"
+  });
+  const qweatherApiHost = createInput({
+    id: "qweatherHostInput",
+    name: "qweatherApiHost"
+  });
   const remoteCapabilityBaseUrl = createInput({
     id: "remoteCapabilityBaseUrlInput",
     name: "remoteCapabilityBaseUrl",
@@ -84,7 +96,9 @@ function createHarness({ apiSettings, revealedSettings, saveSettings, apiError, 
   });
   const button = createButton("deepseekKeyInput");
   const form = createForm();
+  const qualityForm = createForm();
   const status = { textContent: "" };
+  const qualityStatus = { textContent: "" };
   const chatLog = { dataset: { insightTrackId: "track-1" } };
   const voiceCache = {
     cleared: 0,
@@ -103,8 +117,13 @@ function createHarness({ apiSettings, revealedSettings, saveSettings, apiError, 
     elements: {
       apiSettingsForm: form,
       apiSettingsStatus: status,
+      qualitySettingsForm: qualityForm,
+      qualitySettingsStatus: qualityStatus,
       apiSettingsInputs: {
         openaiKey,
+        mimoTtsBaseUrl,
+        openaiBaseUrl,
+        qweatherApiHost,
         remoteCapabilityBaseUrl
       },
       secretToggles: [button]
@@ -151,7 +170,12 @@ function createHarness({ apiSettings, revealedSettings, saveSettings, apiError, 
     chatLog,
     controller,
     form,
+    qualityForm,
+    qualityStatus,
     openaiKey,
+    mimoTtsBaseUrl,
+    openaiBaseUrl,
+    qweatherApiHost,
     remoteCapabilityBaseUrl,
     status,
     voiceCache
@@ -200,7 +224,7 @@ function createHarness({ apiSettings, revealedSettings, saveSettings, apiError, 
 }
 
 {
-  const { calls, chatLog, controller, form, remoteCapabilityBaseUrl, status, voiceCache } = createHarness({
+  const { calls, chatLog, controller, form, qualityForm, qualityStatus, remoteCapabilityBaseUrl, status, voiceCache } = createHarness({
     apiSettings: { openaiKey: "********abc" },
     saveSettings: {
       openaiKey: "********abc",
@@ -216,6 +240,7 @@ function createHarness({ apiSettings, revealedSettings, saveSettings, apiError, 
     remoteCapabilityBaseUrl: "https://new.example.com"
   });
   assert.equal(status.textContent, "API 设置已保存。");
+  assert.equal(qualityStatus.textContent, status.textContent);
   assert.deepEqual(calls.storage, [
     { key: "claudio-remote-api", value: "https://new.example.com" }
   ]);
@@ -230,6 +255,7 @@ function createHarness({ apiSettings, revealedSettings, saveSettings, apiError, 
 
   controller.bindApiSettingsEvents();
   assert.equal(typeof form.listeners.submit, "function");
+  assert.equal(typeof qualityForm.listeners.submit, "function");
 }
 
 {
@@ -249,12 +275,33 @@ function createHarness({ apiSettings, revealedSettings, saveSettings, apiError, 
   assert.equal(calls.api[1].options.method, "POST");
   assert.ok(!status.textContent.includes("澶辫触"));
   assert.deepEqual(calls.storage, [
-    { key: "claudio-api-settings", value: JSON.stringify({ remoteCapabilityBaseUrl: "http://phone.local:3088" }) },
+    {
+      key: "claudio-api-settings",
+      value: JSON.stringify({
+        mimoTtsBaseUrl: "https://api.xiaomimimo.com/v1",
+        openaiBaseUrl: "https://api.deepseek.com",
+        qweatherApiHost: "devapi.qweather.com",
+        remoteCapabilityBaseUrl: "http://phone.local:3088"
+      })
+    },
     { key: "claudio-remote-api", value: "http://phone.local:3088" }
   ]);
 
   controller.bindApiSettingsEvents();
   assert.equal(typeof form.listeners.submit, "function");
+}
+
+{
+  const { controller, mimoTtsBaseUrl, openaiBaseUrl, qweatherApiHost } = createHarness({
+    localApiSettingsRuntime: true,
+    localStoredSettings: {}
+  });
+
+  await controller.loadApiSettings();
+
+  assert.equal(openaiBaseUrl.value, "https://api.deepseek.com");
+  assert.equal(mimoTtsBaseUrl.value, "https://api.xiaomimimo.com/v1");
+  assert.equal(qweatherApiHost.value, "devapi.qweather.com");
 }
 
 console.log("frontend-api-settings-runtime-controller tests passed");

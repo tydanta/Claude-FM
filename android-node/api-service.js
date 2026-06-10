@@ -3,6 +3,8 @@ const http = require("http");
 const https = require("https");
 const path = require("path");
 
+const SETTINGS_FILENAME = "claudio-android-runtime-settings.json";
+
 function parseEnvFileContent(content) {
   const parsed = {};
   String(content || "").split(/\r?\n/).forEach((line) => {
@@ -27,10 +29,11 @@ function readJsonFile(filePath) {
 
 function writeJsonFile(filePath, value) {
   try {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, JSON.stringify(value, null, 2));
-  } catch {
-    // Android asset folders can be read-only on some devices; the in-memory
-    // settings still apply until the app process exits.
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error };
   }
 }
 
@@ -56,17 +59,32 @@ function normalizeBaseUrl(value, fallback) {
   return String(value || fallback || "").trim().replace(/\/$/, "");
 }
 
-function getSettingsPath(settingsPath = "") {
-  return settingsPath || path.join(process.cwd(), "claudio-android-runtime-settings.json");
+function getWritableDataDir(appBridge = null) {
+  try {
+    const bridge = appBridge || require("cordova-bridge").app;
+    if (bridge && typeof bridge.datadir === "function") {
+      return String(bridge.datadir() || "").trim();
+    }
+  } catch {
+    // Local Node tests and desktop dev do not have the mobile bridge.
+  }
+  return "";
 }
 
-function createRuntimeConfig(rootDir = process.cwd(), settingsPath = "", moduleDir = __dirname) {
+function getSettingsPath(settingsPath = "", appBridge = null) {
+  if (settingsPath) return settingsPath;
+  return path.join(getWritableDataDir(appBridge) || process.cwd(), SETTINGS_FILENAME);
+}
+
+function createRuntimeConfig(rootDir = process.cwd(), settingsPath = "", moduleDir = __dirname, settingsOverride = null) {
   const env = {
     ...readBundledEnv(rootDir, moduleDir),
     ...process.env
   };
-  const saved = readJsonFile(getSettingsPath(settingsPath));
-  const openaiBaseUrl = normalizeBaseUrl(saved.openaiBaseUrl || env.OPENAI_BASE_URL, "https://api.bjxrouter.com");
+  const saved = settingsOverride && typeof settingsOverride === "object"
+    ? settingsOverride
+    : readJsonFile(getSettingsPath(settingsPath));
+  const openaiBaseUrl = normalizeBaseUrl(saved.openaiBaseUrl || env.OPENAI_BASE_URL, "https://api.deepseek.com");
   return {
     openaiBaseUrl,
     openaiKey: String(saved.openaiKey || env.OPENAI_API_KEY || ""),
@@ -101,6 +119,7 @@ function editableSettings(config, revealSecrets = false) {
     openaiKey: revealSecrets ? config.openaiKey : maskSecret(config.openaiKey),
     openaiModel: config.openaiModel,
     mimoTtsKey: revealSecrets ? config.mimoTtsKey : maskSecret(config.mimoTtsKey),
+    mimoTtsBaseUrl: config.mimoTtsBaseUrl,
     mimoTtsModel: config.mimoTtsModel,
     mimoVoiceDesignModel: config.mimoVoiceDesignModel,
     qweatherApiKey: revealSecrets ? config.qweatherApiKey : maskSecret(config.qweatherApiKey),
@@ -411,7 +430,9 @@ function createClaudeCapabilityServer({
   request = requestJson,
   createServer = (handler) => http.createServer(handler)
 } = {}) {
-  let config = createRuntimeConfig(rootDir, settingsPath, __dirname);
+  const resolvedSettingsPath = getSettingsPath(settingsPath);
+  let memorySettings = readJsonFile(resolvedSettingsPath);
+  let config = createRuntimeConfig(rootDir, resolvedSettingsPath, __dirname, memorySettings);
   const history = [{ role: "system", content: "ready" }];
 
   async function handler(req, res) {
@@ -435,12 +456,16 @@ function createClaudeCapabilityServer({
       }
       if (req.method === "POST" && url.pathname === "/api/settings") {
         const body = await readBody(req);
-        const nextSettings = readJsonFile(getSettingsPath(settingsPath));
-        ["openaiBaseUrl", "openaiKey", "openaiModel", "mimoTtsKey", "mimoTtsModel", "mimoVoiceDesignModel", "mimoTtsFormat", "mimoTtsVoice", "qweatherApiKey", "qweatherApiHost", "qweatherLocation", "weatherCity"].forEach((key) => {
-          if (body[key] !== undefined) nextSettings[key] = String(body[key] || "").trim();
+        const nextSettings = { ...memorySettings };
+        ["openaiBaseUrl", "openaiKey", "openaiModel", "mimoTtsKey", "mimoTtsBaseUrl", "mimoTtsModel", "mimoVoiceDesignModel", "mimoTtsFormat", "mimoTtsVoice", "qweatherApiKey", "qweatherApiHost", "qweatherLocation", "weatherCity"].forEach((key) => {
+          if (body[key] !== undefined) nextSettings[key] = String(body[key] || "").trim().replace(/\/$/, "");
         });
-        writeJsonFile(getSettingsPath(settingsPath), nextSettings);
-        config = createRuntimeConfig(rootDir, settingsPath, __dirname);
+        memorySettings = nextSettings;
+        const writeResult = writeJsonFile(resolvedSettingsPath, memorySettings);
+        if (!writeResult.ok) {
+          console.log(`[Claude API] settings write failed: ${writeResult.error && writeResult.error.message ? writeResult.error.message : writeResult.error}`);
+        }
+        config = createRuntimeConfig(rootDir, resolvedSettingsPath, __dirname, memorySettings);
         sendJson(res, 200, { ok: true, settings: editableSettings(config) });
         return;
       }
@@ -542,6 +567,7 @@ module.exports = {
   createRuntimeConfig,
   editableSettings,
   fallbackChatReply,
+  getSettingsPath,
   getWeather,
   normalizeLocation,
   parseEnvFileContent,

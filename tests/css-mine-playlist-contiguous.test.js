@@ -17,5 +17,20 @@ assert.match(block, /border:\s*0px\s*!important/i, "mine playlist cards should n
 assert.match(block, /box-shadow:\s*none\s*!important/i, "mine playlist cards should not have shadows");
 assert.match(block, /margin-top:\s*0px\s*!important/i, "mine playlist cards should not overlap borders to hide gaps");
 assert.match(block, /transform:\s*none\s*!important/i, "mine playlist card hover should not lift rows apart");
+assert.match(
+  block,
+  /\.mine-playlist-list\s+\.playlist-card[\s\S]*?grid-template-columns:\s*62px\s+minmax\(0px,\s*1fr\)\s+78px\s*!important/i,
+  "mine playlist cards should reserve a fixed right column for song counts"
+);
+assert.match(
+  block,
+  /\.mine-playlist-list\s+\.playlist-count[\s\S]*?justify-self:\s*end\s*!important[\s\S]*?text-align:\s*right\s*!important/i,
+  "mine playlist counts should stay right aligned"
+);
+assert.match(
+  block,
+  /\.mine-playlist-list\s+\.playlist-count[\s\S]*?font-variant-numeric:\s*tabular-nums/i,
+  "mine playlist counts should keep stable numeric width"
+);
 
 console.log("css mine playlist contiguous tests passed");

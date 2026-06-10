@@ -52,4 +52,10 @@ assert.equal(runtimeConfigKeys.has("remoteCapabilityBaseUrl"), true);
 assert.equal(envKeyMap.openaiKey, "OPENAI_API_KEY");
 assert.equal(envKeyMap.remoteCapabilityBaseUrl, "REMOTE_CAPABILITY_BASE_URL");
 
+const defaultConfig = createConfig({ env: {}, rootDir });
+assert.equal(defaultConfig.openaiBaseUrl, "https://api.deepseek.com");
+assert.equal(defaultConfig.openaiChatPath, "/chat/completions");
+assert.equal(defaultConfig.mimoTtsBaseUrl, "https://api.xiaomimimo.com/v1");
+assert.equal(defaultConfig.qweatherApiHost, "devapi.qweather.com");
+
 console.log("config tests passed");

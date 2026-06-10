@@ -10,7 +10,7 @@ assert.ok(cleanupBlockMatch, "styles.css should end with a flat content card sha
 
 const cleanupBlock = cleanupBlockMatch.groups.block;
 const selectors = [
-  ".topbar",
+  ".app-top-chrome",
   ".stage",
   ".player-row",
   ".player-row .round-btn",

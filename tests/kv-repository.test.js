@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createDatabase, initDatabase } from "../src/server/database.js";
 import { createKvRepository } from "../src/server/kv-repository.js";
+import { removeTempDir } from "./temp-cleanup.js";
 
 const tempDir = await mkdtemp(path.join(os.tmpdir(), "claude-fm-kv-"));
 const dbPath = path.join(tempDir, "test.sqlite");
@@ -26,7 +27,7 @@ try {
 
   db.close();
 } finally {
-  await rm(tempDir, { recursive: true, force: true });
+  await removeTempDir(tempDir);
 }
 
 console.log("kv-repository tests passed");

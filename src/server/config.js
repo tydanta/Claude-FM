@@ -3,6 +3,7 @@ import path from "node:path";
 
 export const runtimeConfigKeys = new Set([
   "mimoTtsKey",
+  "mimoTtsBaseUrl",
   "mimoTtsModel",
   "mimoVoiceDesignModel",
   "openaiBaseUrl",
@@ -18,6 +19,7 @@ export const runtimeConfigKeys = new Set([
 
 export const envKeyMap = {
   mimoTtsKey: "MIMO_TTS_API_KEY",
+  mimoTtsBaseUrl: "MIMO_TTS_BASE_URL",
   mimoTtsModel: "MIMO_TTS_MODEL",
   mimoVoiceDesignModel: "MIMO_VOICE_DESIGN_MODEL",
   openaiBaseUrl: "OPENAI_BASE_URL",
@@ -57,7 +59,7 @@ export function loadEnvFile(rootDir, env = process.env) {
 
 export function createConfig({ env = process.env, rootDir }) {
   const dataDir = env.DATA_DIR || path.join(rootDir, "data");
-  const openaiBaseUrl = (env.OPENAI_BASE_URL || "https://api.bjxrouter.com").replace(/\/$/, "");
+  const openaiBaseUrl = (env.OPENAI_BASE_URL || "https://api.deepseek.com").replace(/\/$/, "");
   return {
     dataDir,
     port: Number(env.PORT || 3088),

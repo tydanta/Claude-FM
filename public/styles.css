@@ -1000,9 +1000,44 @@ body[data-theme="light"] .settings-item { background: linear-gradient(rgba(255, 
 
 .settings-panel-body { border-top: 1px solid var(--line); padding: 20px 22px 24px; display: grid; gap: 18px; }
 
-.glass-settings label, .northern-settings label, .voice-settings label, .api-settings-form label { display: grid; gap: 8px; color: var(--text); font-size: 13px; }
+.glass-settings label, .northern-settings label, .voice-settings label, .api-settings-form label, .audio-quality-settings-form label { display: grid; gap: 8px; color: var(--text); font-size: 13px; }
 
-.glass-settings select, .northern-settings input, .voice-settings select, .voice-settings textarea, .api-settings-form select, .api-settings-form input { width: 100%; min-width: 0px; border: 1px solid var(--line); border-radius: 12px; color: var(--text); background: rgba(255, 255, 255, 0.043); padding: 12px 14px; }
+.glass-settings select, .northern-settings input, .voice-settings select, .voice-settings textarea, .api-settings-form select, .api-settings-form input, .audio-quality-settings-form select { width: 100%; min-width: 0px; border: 1px solid var(--line); border-radius: 12px; color: var(--text); background: rgba(255, 255, 255, 0.043); padding: 12px 14px; }
+
+/* 核心下拉控件：保留原生 select 负责表单值，视觉和展开层统一走自定义玻璃控件。 */
+.native-select-hidden { position: absolute; left: 0px; top: 0px; width: 1px !important; height: 1px !important; min-width: 0px !important; padding: 0px !important; border: 0px !important; opacity: 0; pointer-events: none; }
+
+.styled-select-shell { position: relative; display: block; width: 100%; min-width: 0px; z-index: 1; }
+
+.styled-select-shell.is-open { z-index: 300; }
+
+.settings-item.has-open-select { overflow: visible !important; }
+
+.api-settings-form fieldset:has(.styled-select-shell.is-open) { position: relative; z-index: 260 !important; overflow: visible !important; }
+
+.api-settings-form label:has(.styled-select-shell.is-open) { position: relative; z-index: 270 !important; }
+
+.styled-select-trigger { width: 100%; min-width: 0px; min-height: 48px; display: grid; grid-template-columns: minmax(0px, 1fr) 18px; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 0px 16px 0px 18px; color: var(--text); background: linear-gradient(rgba(255, 255, 255, 0.056), rgba(255, 255, 255, 0.026)); box-shadow: rgba(0, 0, 0, 0.12) 0px 10px 28px, rgba(255, 255, 255, 0.045) 0px 1px 0px inset; text-align: left; }
+
+.styled-select-trigger:hover, .styled-select-shell.is-open .styled-select-trigger { border-color: rgba(97, 242, 143, 0.32); background: linear-gradient(rgba(97, 242, 143, 0.09), rgba(255, 255, 255, 0.035)); }
+
+.styled-select-value { min-width: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+
+.styled-select-arrow { width: 9px; height: 9px; justify-self: center; border-right: 2px solid currentcolor; border-bottom: 2px solid currentcolor; color: var(--muted); transform: translateY(-2px) rotate(45deg); transition: transform 180ms, color 180ms; }
+
+.styled-select-shell.is-open .styled-select-arrow { color: var(--accent); transform: translateY(2px) rotate(225deg); }
+
+.styled-select-menu { position: absolute; left: 0px; right: 0px; top: calc(100% + 7px); z-index: 320; max-height: 220px; overflow-y: auto; display: grid; gap: 4px; border: 1px solid var(--line-strong); border-radius: 12px; padding: 6px; background: linear-gradient(rgba(23, 28, 30, 0.96), rgba(11, 14, 16, 0.96)); box-shadow: rgba(0, 0, 0, 0.32) 0px 18px 48px, rgba(255, 255, 255, 0.06) 0px 1px 0px inset; backdrop-filter: blur(18px); }
+
+.styled-select-menu[hidden] { display: none !important; }
+
+.styled-select-option { min-height: 38px; border: 0px; border-radius: 9px; padding: 0px 10px; display: grid; align-items: center; color: var(--text); background: transparent; text-align: left; }
+
+.styled-select-option span { min-width: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.styled-select-option:hover, .styled-select-option.is-active { color: var(--accent); background: rgba(97, 242, 143, 0.1); }
+
+.styled-select-option:disabled { color: var(--dim); cursor: default; opacity: 0.58; }
 
 .secret-input-wrap { position: relative; display: block; width: 100%; }
 
@@ -1020,7 +1055,11 @@ body[data-theme="light"] .settings-item { background: linear-gradient(rgba(255, 
 
 .secret-toggle.is-visible span::after { opacity: 0; transform: translate(-50%, -50%) rotate(-34deg) scaleX(0.2); }
 
-body[data-theme="light"] .glass-settings select, body[data-theme="light"] .northern-settings input, body[data-theme="light"] .voice-settings select, body[data-theme="light"] .voice-settings textarea, body[data-theme="light"] .api-settings-form select, body[data-theme="light"] .api-settings-form input { background: rgba(17, 33, 24, 0.043); }
+body[data-theme="light"] .glass-settings select, body[data-theme="light"] .northern-settings input, body[data-theme="light"] .voice-settings select, body[data-theme="light"] .voice-settings textarea, body[data-theme="light"] .api-settings-form select, body[data-theme="light"] .api-settings-form input, body[data-theme="light"] .audio-quality-settings-form select { background: rgba(17, 33, 24, 0.043); }
+
+body[data-theme="light"] .styled-select-trigger { background: linear-gradient(rgba(17, 33, 24, 0.052), rgba(17, 33, 24, 0.026)); box-shadow: rgba(17, 33, 24, 0.08) 0px 10px 28px, rgba(255, 255, 255, 0.62) 0px 1px 0px inset; }
+
+body[data-theme="light"] .styled-select-menu { background: linear-gradient(rgba(252, 253, 248, 0.97), rgba(239, 244, 237, 0.96)); box-shadow: rgba(17, 33, 24, 0.16) 0px 18px 48px, rgba(255, 255, 255, 0.74) 0px 1px 0px inset; }
 
 .voice-settings textarea { resize: vertical; line-height: 1.6; }
 
@@ -1379,7 +1418,7 @@ h1 { margin-bottom: 14px; font-size: clamp(28px, 8vw, 34px); }
 
 .profile-panel { min-height: 206px; }
 
-.playlist-card { grid-template-columns: 62px minmax(0px, 1fr) auto; gap: 12px; min-height: 74px; padding: 10px 12px; }
+.playlist-card { grid-template-columns: 62px minmax(0px, 1fr) 78px; gap: 12px; min-height: 74px; padding: 10px 12px; }
 
 .playlist-cover { width: 62px; height: 62px; }
 
@@ -1515,11 +1554,11 @@ body[data-surface="liquid"] .settings-btn, body[data-surface="liquid"] .search-p
     linear-gradient(145deg, var(--glass-sheen), transparent 42%),
     var(--glass-bg-soft); box-shadow: var(--glass-control-shadow); backdrop-filter: url("#liquidGlassControl") blur(16px) saturate(1.44) brightness(1.08); }
 
-body[data-surface="liquid"] input, body[data-surface="liquid"] select, body[data-surface="liquid"] textarea, body[data-surface="liquid"] .chat-form input, body[data-surface="liquid"] .voice-settings select, body[data-surface="liquid"] .voice-settings textarea, body[data-surface="liquid"] .api-settings-form select, body[data-surface="liquid"] .api-settings-form input { border-color: rgba(255, 255, 255, 0.18); background: linear-gradient(90deg, rgba(255, 255, 255, 0.014) 0%, rgba(255, 255, 255, 0.04) 58%, var(--glass-tint) 100%),
+body[data-surface="liquid"] input, body[data-surface="liquid"] select, body[data-surface="liquid"] textarea, body[data-surface="liquid"] .chat-form input, body[data-surface="liquid"] .voice-settings select, body[data-surface="liquid"] .voice-settings textarea, body[data-surface="liquid"] .api-settings-form select, body[data-surface="liquid"] .api-settings-form input, body[data-surface="liquid"] .audio-quality-settings-form select { border-color: rgba(255, 255, 255, 0.18); background: linear-gradient(90deg, rgba(255, 255, 255, 0.014) 0%, rgba(255, 255, 255, 0.04) 58%, var(--glass-tint) 100%),
     linear-gradient(145deg, var(--glass-sheen), transparent 48%),
     rgba(255, 255, 255, 0.035); box-shadow: rgba(255, 255, 255, 0.24) 0px 1px 0px inset, rgba(255, 255, 255, 0.024) 0px -12px 24px inset; backdrop-filter: url("#liquidGlassControl") blur(14px) saturate(1.34); }
 
-body[data-theme="light"][data-surface="liquid"] input, body[data-theme="light"][data-surface="liquid"] select, body[data-theme="light"][data-surface="liquid"] textarea, body[data-theme="light"][data-surface="liquid"] .chat-form input, body[data-theme="light"][data-surface="liquid"] .voice-settings select, body[data-theme="light"][data-surface="liquid"] .voice-settings textarea, body[data-theme="light"][data-surface="liquid"] .api-settings-form select, body[data-theme="light"][data-surface="liquid"] .api-settings-form input { border-color: rgba(255, 255, 255, 0.78); background: linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.46) 58%, var(--glass-tint) 100%),
+body[data-theme="light"][data-surface="liquid"] input, body[data-theme="light"][data-surface="liquid"] select, body[data-theme="light"][data-surface="liquid"] textarea, body[data-theme="light"][data-surface="liquid"] .chat-form input, body[data-theme="light"][data-surface="liquid"] .voice-settings select, body[data-theme="light"][data-surface="liquid"] .voice-settings textarea, body[data-theme="light"][data-surface="liquid"] .api-settings-form select, body[data-theme="light"][data-surface="liquid"] .api-settings-form input, body[data-theme="light"][data-surface="liquid"] .audio-quality-settings-form select { border-color: rgba(255, 255, 255, 0.78); background: linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.46) 58%, var(--glass-tint) 100%),
     linear-gradient(145deg, var(--glass-sheen-strong), transparent 48%),
     rgba(255, 255, 255, 0.24); }
 
@@ -1630,7 +1669,8 @@ body[data-theme="dark"][data-surface="liquid"] .chat-form input,
 body[data-theme="dark"][data-surface="liquid"] .voice-settings select,
 body[data-theme="dark"][data-surface="liquid"] .voice-settings textarea,
 body[data-theme="dark"][data-surface="liquid"] .api-settings-form select,
-body[data-theme="dark"][data-surface="liquid"] .api-settings-form input { background-image: none; box-shadow: none; }
+body[data-theme="dark"][data-surface="liquid"] .api-settings-form input,
+body[data-theme="dark"][data-surface="liquid"] .audio-quality-settings-form select { background-image: none; box-shadow: none; }
 
 body[data-theme="dark"][data-surface="liquid"] .round-btn, body[data-theme="dark"][data-surface="liquid"] .play-btn, body[data-theme="dark"][data-surface="liquid"] .mini-btn, body[data-theme="dark"][data-surface="liquid"] .chat-form button, body[data-theme="dark"][data-surface="liquid"] .voice-input-btn, body[data-theme="dark"][data-surface="liquid"] .queue-next-btn, body[data-theme="dark"][data-surface="liquid"] .collect-close-btn, body[data-theme="dark"][data-surface="liquid"] .playlist-action-btn, body[data-theme="dark"][data-surface="liquid"] .artist-profile-back, body[data-theme="dark"][data-surface="liquid"] .playlist-search-toggle, body[data-theme="dark"][data-surface="liquid"] .settings-btn, body[data-theme="dark"][data-surface="liquid"] .search-page-btn { background-image: none; box-shadow: none; }
 
@@ -2251,7 +2291,7 @@ body[data-page="mine"][data-mine-view="detail"] .mine-page, body[data-page="mine
 
 body[data-page="mine"][data-mine-view="detail"] .fm-shell, body[data-page="mine"][data-mine-view="search"] .fm-shell, body[data-page="mine"][data-mine-view="artist"] .fm-shell, body[data-page="artist"] .fm-shell { bottom: 0px !important; }
 
-body[data-page="mine"][data-mine-view="detail"] .app-bottom-chrome, body[data-page="mine"][data-mine-view="search"] .app-bottom-chrome, body[data-page="mine"][data-mine-view="artist"] .app-bottom-chrome, body[data-page="artist"] .app-bottom-chrome, body[data-page="album"] .app-bottom-chrome, body[data-page="mine"][data-mine-view="detail"] .liquid-nav-root, body[data-page="mine"][data-mine-view="search"] .liquid-nav-root, body[data-page="mine"][data-mine-view="artist"] .liquid-nav-root, body[data-page="artist"] .liquid-nav-root, body[data-page="album"] .liquid-nav-root { display: none !important; }
+body[data-page="mine"][data-mine-view="detail"] .app-bottom-chrome, body[data-page="mine"][data-mine-view="search"] .app-bottom-chrome, body[data-page="mine"][data-mine-view="artist"] .app-bottom-chrome, body[data-page="artist"] .app-bottom-chrome, body[data-page="album"] .app-bottom-chrome, body[data-page="settings"] .app-bottom-chrome, body[data-page="mine"][data-mine-view="detail"] .liquid-nav-root, body[data-page="mine"][data-mine-view="search"] .liquid-nav-root, body[data-page="mine"][data-mine-view="artist"] .liquid-nav-root, body[data-page="artist"] .liquid-nav-root, body[data-page="album"] .liquid-nav-root, body[data-page="settings"] .liquid-nav-root { display: none !important; }
 
 .app-top-mine .mine-profile-mini, .app-top-mine .mine-top-actions, .app-top-mine .mine-search-wrap, .app-top-playlist .playlist-back-btn, .app-top-playlist .playlist-search { position: relative !important; z-index: 3 !important; pointer-events: auto !important; }
 
@@ -2324,6 +2364,8 @@ body.mine-title-pinned .app-top-mine.is-search-open .mine-profile-mini { z-index
 .app-top-mine .settings-btn { right: -12px !important; }
 
 body[data-page="mine"][data-mine-view="search"] .search-result-top-back { position: absolute !important; left: 12px !important; top: var(--app-top-control-top) !important; z-index: 12 !important; width: 42px !important; height: 42px !important; display: grid !important; place-items: center !important; border: 0px !important; background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; color: var(--text) !important; text-shadow: rgba(255, 255, 255, 0.55) 0px 1px 12px !important; }
+
+body[data-page="mine"]:not([data-mine-view="search"]) .search-result-top-back { display: none !important; visibility: hidden !important; pointer-events: none !important; }
 
 body[data-page="mine"][data-mine-view="search"] .app-top-mine .search-page-btn { display: none !important; }
 
@@ -2872,11 +2914,23 @@ body[data-page="mine"][data-mine-view="list"][data-surface="liquid"] .mine-playl
 
 body[data-page="mine"][data-mine-view="list"] .mine-playlist-list .playlist-card,
 body[data-page="mine"][data-mine-view="list"][data-surface="liquid"] .mine-playlist-list .playlist-card {
+  grid-template-columns: 62px minmax(0px, 1fr) 78px !important;
   margin: 0px !important;
   border: 0px !important;
   border-radius: 0px !important;
   box-shadow: none !important;
   transform: none !important;
+}
+
+/* 核心列表数字列：歌单数量独立占右列，避免不同位数把列表挤歪。 */
+body[data-page="mine"][data-mine-view="list"] .mine-playlist-list .playlist-count,
+body[data-page="mine"][data-mine-view="list"][data-surface="liquid"] .mine-playlist-list .playlist-count {
+  grid-column: 3 !important;
+  width: 78px !important;
+  min-width: 78px !important;
+  justify-self: end !important;
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
 }
 
 body[data-page="mine"][data-mine-view="list"] .mine-playlist-list .playlist-card + .playlist-card,
@@ -3149,6 +3203,7 @@ body[data-surface="liquid"] #musicSearchPageList .mine-track-mood {
   line-height: 1.15 !important;
 }
 
+/* Top control alignment */
 /* 核心顶栏：固定顶部栏、搜索框和返回键统一位置。页面返回键和顶层控件优先走这里。 */
 .playlist-back-btn,
 .artist-profile-back,
@@ -3955,6 +4010,29 @@ body[data-page="player"] #playerPage #playerPlayIcon {
     width: 44px !important;
     height: 44px !important;
   }
+}
+
+/* Flat content cards */
+.app-top-chrome,
+.stage,
+.player-row,
+.player-row .round-btn,
+.player-row .play-btn,
+.radio-recommend-panel,
+.radio-recommend-card,
+.insight-card,
+.playlist-hero,
+.artist-hero,
+.artist-profile-panel,
+.playlist-card,
+.mine-track-item,
+.settings-panel,
+.settings-item,
+.settings-topbar .playlist-back-btn,
+.northern-choice,
+.api-settings-form fieldset,
+.audio-quality-settings-form {
+  box-shadow: none !important;
 }
 
 

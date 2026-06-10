@@ -4,6 +4,12 @@ import {
 } from "./settingsController.js";
 import { isLocalAppRuntime } from "../runtime/platform.js";
 
+export const DEFAULT_API_SETTINGS = {
+  mimoTtsBaseUrl: "https://api.xiaomimimo.com/v1",
+  openaiBaseUrl: "https://api.deepseek.com",
+  qweatherApiHost: "devapi.qweather.com"
+};
+
 export function createApiSettingsRuntimeController({
   elements = {},
   api = async () => ({}),
@@ -26,12 +32,15 @@ export function createApiSettingsRuntimeController({
   const {
     apiSettingsForm,
     apiSettingsStatus,
+    qualitySettingsForm,
+    qualitySettingsStatus,
     apiSettingsInputs = {},
     secretToggles = []
   } = elements;
 
   function setStatus(message) {
     if (apiSettingsStatus) apiSettingsStatus.textContent = message;
+    if (qualitySettingsStatus) qualitySettingsStatus.textContent = message;
   }
 
   function applyApiSettings(settings = {}) {
@@ -101,7 +110,7 @@ export function createApiSettingsRuntimeController({
   async function loadApiSettings() {
     if (!apiSettingsForm) return;
     if (isLocalApiSettingsRuntime()) {
-      const settings = readLocalApiSettings();
+      const settings = { ...DEFAULT_API_SETTINGS, ...readLocalApiSettings() };
       applyApiSettings(settings);
       syncLocalApiSettings(settings);
       return;
@@ -167,6 +176,7 @@ export function createApiSettingsRuntimeController({
 
   function bindApiSettingsEvents() {
     apiSettingsForm?.addEventListener("submit", saveApiSettings);
+    qualitySettingsForm?.addEventListener("submit", saveApiSettings);
     secretToggles.forEach((button) => {
       button.addEventListener("click", () => toggleSecretInput(button));
     });

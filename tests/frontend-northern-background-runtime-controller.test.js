@@ -157,6 +157,24 @@ function createHarness({
 
 {
   const { calls, controller, input, status, values } = createHarness({
+    uploadBackground: { mode: "custom", imageUrl: "/api/background/image/android-bg.png" },
+    readFileResult: "data:image/png;base64,local",
+    isLocalBackgroundRuntime: () => true
+  });
+
+  await controller.uploadNorthernBackground({ type: "image/png", size: 1024 });
+
+  assert.equal(calls.api[0].url, "/api/background/upload");
+  assert.equal(calls.api[0].options.method, "POST");
+  assert.deepEqual(calls.applied[0], { mode: "custom", imageUrl: "/api/background/image/android-bg.png" });
+  assert.equal(values.get("claudio-northern-mode"), "custom");
+  assert.equal(values.get("claudio-northern-image"), "/api/background/image/android-bg.png");
+  assert.equal(status.textContent, "背景图已保存并应用。");
+  assert.equal(input.value, "");
+}
+
+{
+  const { calls, controller, input, status, values } = createHarness({
     apiError: new Error("missing backend"),
     readFileResult: "data:image/png;base64,local",
     isLocalBackgroundRuntime: () => true
@@ -164,11 +182,11 @@ function createHarness({
 
   await controller.uploadNorthernBackground({ type: "image/png", size: 1024 });
 
-  assert.deepEqual(calls.api, []);
+  assert.equal(calls.api[0].url, "/api/background/upload");
   assert.deepEqual(calls.applied[0], { mode: "custom", imageUrl: "data:image/png;base64,local" });
   assert.equal(values.get("claudio-northern-mode"), "custom");
   assert.equal(values.get("claudio-northern-image"), "data:image/png;base64,local");
-  assert.notEqual(status.textContent, "");
+  assert.equal(status.textContent, "本地服务暂时不可用，已临时应用背景图。");
   assert.equal(input.value, "");
 }
 

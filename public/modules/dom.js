@@ -4,6 +4,7 @@ export function collectDomElements(documentRef = document) {
 
   const apiSettingsInputs = {
     mimoTtsKey: q("#mimoTtsKeyInput"),
+    mimoTtsBaseUrl: q("#mimoTtsBaseUrlInput"),
     mimoTtsModel: q("#mimoTtsModelInput"),
     mimoVoiceDesignModel: q("#mimoVoiceDesignModelInput"),
     openaiKey: q("#deepseekKeyInput"),
@@ -138,6 +139,8 @@ export function collectDomElements(documentRef = document) {
     voiceSettingsSaveBtn: q("#voiceSettingsSaveBtn"),
     apiSettingsForm: q("#apiSettingsForm"),
     apiSettingsStatus: q("#apiSettingsStatus"),
+    qualitySettingsForm: q("#qualitySettingsForm"),
+    qualitySettingsStatus: q("#qualitySettingsStatus"),
     apiSettingsInputs,
     secretToggles: qa("[data-secret-toggle]"),
     userProfilePanel: q(".profile-panel:not(.artist-profile-panel)"),

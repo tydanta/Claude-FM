@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createDatabase, initDatabase } from "../src/server/database.js";
 import { createNeteaseLibraryService } from "../src/server/netease-library-service.js";
+import { removeTempDir } from "./temp-cleanup.js";
 import { createPlaylistRepository } from "../src/server/playlist-repository.js";
 import { createTrackRepository } from "../src/server/track-repository.js";
 
@@ -109,7 +110,7 @@ try {
 
   db.close();
 } finally {
-  await rm(tempDir, { recursive: true, force: true });
+  await removeTempDir(tempDir);
 }
 
 console.log("netease-library-service tests passed");

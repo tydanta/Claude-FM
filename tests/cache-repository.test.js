@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createCacheRepository } from "../src/server/cache-repository.js";
 import { createDatabase, initDatabase } from "../src/server/database.js";
+import { removeTempDir } from "./temp-cleanup.js";
 
 const tempDir = await mkdtemp(path.join(os.tmpdir(), "claude-fm-cache-"));
 const dbPath = path.join(tempDir, "test.sqlite");
@@ -41,6 +42,7 @@ try {
     source: "netease",
     sourceId: "200",
     lyric: "[00:01] hello",
+    yrcLyric: "",
     translatedLyric: "[00:01] 你好",
     romajiLyric: "",
     raw: { lrc: { lyric: "[00:01] hello" } },
@@ -61,7 +63,7 @@ try {
 
   db.close();
 } finally {
-  await rm(tempDir, { recursive: true, force: true });
+  await removeTempDir(tempDir);
 }
 
 console.log("cache-repository tests passed");

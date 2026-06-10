@@ -20,6 +20,7 @@ try {
   const cleared = [];
   const config = {
     mimoTtsKey: "mimo-secret",
+    mimoTtsBaseUrl: "https://api.xiaomimimo.com/v1",
     mimoTtsModel: "mimo-v2.5-tts",
     mimoVoiceDesignModel: "mimo-v2.5-tts-voicedesign",
     openaiBaseUrl: "https://api.old.com",
@@ -51,10 +52,12 @@ try {
 
   assert.equal(service.getEditableSettings().openaiKey, "open****cret");
   assert.equal(service.getEditableSettings().mimoTtsKey, "mimo****cret");
+  assert.equal(service.getEditableSettings().mimoTtsBaseUrl, "https://api.xiaomimimo.com/v1");
   assert.equal(service.getEditableSettings({ revealSecrets: true }).openaiKey, "openai-secret");
   assert.equal(service.getEditableSettings().neteaseAudioLevel, "level:higher");
 
   assert.equal(service.normalizeRuntimeSetting("openaiBaseUrl", " https://api.deepseek.com/ "), "https://api.deepseek.com");
+  assert.equal(service.normalizeRuntimeSetting("mimoTtsBaseUrl", " https://api.xiaomimimo.com/v1/ "), "https://api.xiaomimimo.com/v1");
   assert.equal(service.normalizeRuntimeSetting("remoteCapabilityBaseUrl", " https://fm.example.com/ "), "https://fm.example.com");
   assert.equal(service.normalizeRuntimeSetting("qweatherApiHost", "https://devapi.qweather.com/"), "devapi.qweather.com");
   assert.equal(service.normalizeRuntimeSetting("neteaseAudioLevel", " HiRes "), "level:hires");
@@ -63,6 +66,7 @@ try {
   const updated = await service.saveRuntimeSettings({
     openaiKey: "",
     openaiBaseUrl: " https://api.deepseek.com/ ",
+    mimoTtsBaseUrl: " https://api.xiaomimimo.com/v1/ ",
     openaiModel: " gpt-4.1 ",
     remoteCapabilityBaseUrl: " https://fm.example.com/ ",
     qweatherApiHost: "https://devapi.qweather.com/",
@@ -72,6 +76,7 @@ try {
 
   assert.equal(config.openaiKey, "openai-secret");
   assert.equal(config.openaiBaseUrl, "https://api.deepseek.com");
+  assert.equal(config.mimoTtsBaseUrl, "https://api.xiaomimimo.com/v1");
   assert.equal(config.openaiChatPath, "/chat/completions");
   assert.equal(config.openaiModel, "gpt-4.1");
   assert.equal(config.remoteCapabilityBaseUrl, "https://fm.example.com");
@@ -85,6 +90,7 @@ try {
   assert.match(envText, /^# local settings/m);
   assert.match(envText, /^OPENAI_API_KEY=old-key/m);
   assert.match(envText, /^OPENAI_BASE_URL=https:\/\/api\.deepseek\.com/m);
+  assert.match(envText, /^MIMO_TTS_BASE_URL=https:\/\/api\.xiaomimimo\.com\/v1/m);
   assert.match(envText, /^QWEATHER_API_HOST=devapi\.qweather\.com/m);
   assert.match(envText, /^REMOTE_CAPABILITY_BASE_URL=https:\/\/fm\.example\.com/m);
   assert.match(envText, /^OPENAI_MODEL=gpt-4\.1/m);
